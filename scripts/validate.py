@@ -236,9 +236,10 @@ def c_refs():
         for ref in set(re.findall(r'references/([a-z-]+\.md)', t)):
             if os.path.exists(os.path.join(ROOT, 'references', ref)):
                 continue
-            # facts.md 走 .gitignore，仓库里只有模板；模板存在即视为有效引用
-            if ref == 'facts.md' and os.path.exists(
-                    os.path.join(ROOT, 'references', 'facts.example.md')):
+            # facts.md / learnings.md 走 .gitignore，仓库里只有模板；
+            # 模板存在即视为有效引用
+            if ref in ('facts.md', 'learnings.md') and os.path.exists(
+                    os.path.join(ROOT, 'references', ref.replace('.md', '.example.md'))):
                 continue
             out.append(f'{rel(f)} 引用了不存在的 references/{ref}')
     return out

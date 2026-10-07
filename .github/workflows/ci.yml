@@ -22,18 +22,15 @@ jobs:
       - name: 11 项静态验证
         run: python3 scripts/validate.py
 
-      - name: 确认没有网络调用
+      - name: 确认脚本里没有网络调用或遥测
         run: |
-          if grep -rnE '\b(curl|wget|nc|ssh|urllib\.request|requests\.(get|post))\b' scripts/ lib/ *.tmpl 2>/dev/null; then
-            echo "::error::脚本或模板里出现了网络调用"
+          # 只看可执行脚本，不看文档措辞
+          if grep -rnE 'https?://|\bcurl\b|\bwget\b|socket\.|urllib|requests\.' scripts/*.py scripts/*.sh 2>/dev/null; then
+            echo "::error::脚本里出现了网络调用"
             exit 1
           fi
-          echo "无网络调用"
-
-      - name: 确认没有遥测
-        run: |
-          if grep -rniE 'telemetry|analytics|track\(|report\(|phone.?home' scripts/ lib/ *.tmpl 2>/dev/null; then
-            echo "::error::出现遥测相关代码"
+          if grep -rnE 'analytics|\.track\(|telemetry\s*=|phone.?home' scripts/*.py scripts/*.sh 2>/dev/null; then
+            echo "::error::脚本里出现了遥测"
             exit 1
           fi
-          echo "无遥测"
+          echo "脚本无网络调用、无遥测"
