@@ -57,6 +57,9 @@ SIZE_CAPS = {
     'references/anti-patterns.md': 140,
     'lib/preamble.md': 80,
     'SECURITY.md': 140,
+    'DESIGN.md': 200,
+    'references/refusal-list.md': 160,
+    'references/cases.md': 160,
 }
 
 # 凭据特征（命中即失败）
@@ -115,6 +118,11 @@ def files_under(path):
             if n.endswith(('.md', '.tmpl', '.py', '.sh', '.yaml', '.yml')):
                 out.append(os.path.join(base, n))
     return sorted(out)
+
+
+def read(p):
+    with open(p, encoding='utf-8') as f:
+        return f.read()
 
 
 def rel(p):
@@ -297,8 +305,81 @@ def c_leak_terms():
             continue
         t = open(f, encoding='utf-8', errors='ignore').read()
         for term in terms:
-            if term in t:
+            for m in re.finditer(re.escape(term), t):
+                line = t[:m.start()].count('\n')
+                ctx = t.split('\n')[line]
+                # 仓库自身的 URL 属于必要元数据（安装说明要用），不算正文泄露
+                if re.search(rf'github\.com/{re.escape(term)}/', ctx):
+                    continue
                 out.append(f'{rel(f)}: 命中本地词表「{term}」（身份信息不该出现在可发布内容里）')
+                break
+    return out
+
+
+
+def c_rule_three_parts():
+    """每个技能都必须有「判据表」，且保持三段（前面是判据、中间是为什么、后面是边界）。
+
+    只认两种表头：
+      A) 规则 | 为什么 | 反例
+      B) 反模式 | 为什么… | 规范做法
+    只有判据、没有"为什么"或"边界"，规则会退化成教条。
+    """
+    out = []
+    targets = sorted(glob.glob(os.path.join(SKILLS_DIR, 'jj-*', 'SKILL.md'))) + \
+              [os.path.join(ROOT, 'SKILL.md')]
+    for f in targets:
+        if not os.path.exists(f):
+            continue
+        lines = read(f).split('\n')
+        i, found = 0, 0
+        while i < len(lines):
+            if lines[i].strip().startswith('|') and i + 1 < len(lines) and \
+                    re.match(r'^\s*\|[\s:|-]+\|\s*$', lines[i + 1]):
+                header = [c.strip() for c in lines[i].strip().strip('|').split('|')]
+                joined = ' '.join(header)
+                is_rule = ('规则' in joined and '为什么' in joined)
+                is_anti = ('反模式' in joined)
+                if is_rule or is_anti:
+                    found += 1
+                    kind = '规则' if is_rule else '反模式'
+                    if len(header) < 3:
+                        out.append(f'{rel(f)}: {kind}表缺第三列（边界/做法）→ {" | ".join(header)}')
+                    else:
+                        i += 2
+                        while i < len(lines) and lines[i].strip().startswith('|'):
+                            cells = [c.strip() for c in lines[i].strip().strip('|').split('|')]
+                            if len(cells) >= 3 and not cells[2]:
+                                out.append(f'{rel(f)}: {kind}「{cells[0][:18]}」的第三列为空')
+                            i += 1
+                        continue
+            i += 1
+        if found == 0 and os.path.basename(os.path.dirname(f)) != 'jjstack' \
+                and not f.endswith(os.path.join('jjstack', 'SKILL.md')) \
+                and os.path.dirname(f) != ROOT:
+            # 路由器只做分派，不需要判据表
+            out.append(f'{rel(f)}: 没有判据表（规则/为什么/反例 或 反模式/为什么/做法）')
+    return out
+
+
+def c_design_spec():
+    """DESIGN.md 必须是 spec 格式：token 齐 + 立场段齐。"""
+    out = []
+    f = os.path.join(ROOT, 'DESIGN.md')
+    if not os.path.exists(f):
+        return ['DESIGN.md 缺失']
+    t = read(f)
+    if 'design-md-format=spec' not in t:
+        out.append('DESIGN.md 缺 `design-md-format=spec` 标记（格式不可判定）')
+    m = re.match(r'^---\n(.*?)\n---\n', t, re.S)
+    if not m:
+        return out + ['DESIGN.md 没有 frontmatter（token 必须是机器可读的）']
+    for key in ['motion', 'intervention', 'feedback', 'typography', 'measurement', 'disclosure']:
+        if not re.search(rf'^{key}\s*:', m.group(1), re.M):
+            out.append(f'DESIGN.md frontmatter 缺必需键: {key}')
+    for need in ['Direction', 'Mood', 'Decisions Log', 'Refusals']:
+        if need.lower() not in t.lower():
+            out.append(f'DESIGN.md 缺段落: {need}')
     return out
 
 
@@ -351,6 +432,8 @@ CHECKS = [
     ('SECURITY.md 声明齐全', c_security_doc),
     ('本地身份词扫描', c_leak_terms),
     ('shell 脚本语法与变量引用', c_shell_syntax),
+    ('规则表保持三段（规则/为什么/反例）', c_rule_three_parts),
+    ('DESIGN.md 是完整 spec', c_design_spec),
 ]
 
 

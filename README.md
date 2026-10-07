@@ -1,138 +1,119 @@
 # jjstack
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.1-green.svg)](CHANGELOG.md)
-[![No network](https://img.shields.io/badge/network-none-lightgrey.svg)](SECURITY.md)
+**一套能让别人的 AI 也按这套判断干活的工作方式。**
 
-把一个 builder 的工作方式编码成可复用的 agent skill 套件。
-
-结构参考 [gstack](https://github.com/garrytan/gstack)（Garry Tan 的 Claude Code 套件）：路由器 + 子技能 + ETHOS 注入 + 共享 references + 模板生成 + 静态验证。
-
-**七条原则，五个技能，纯 Markdown + 三个本地脚本。不联网、无遥测、默认不自动触发。**
+装给你朋友（或你自己的）agent：它做产品时会先反问，而不是直接开工。
 
 ---
 
-## 它解决什么问题
+## 先看一个例子
 
-面对空白 prompt，AI agent 会即兴发挥：你说"帮我写代码"它就闷头写，你说"看看这个方案"它按自己的理解来。流程不可复现，每次都不一样。
+朋友对他的 agent 说：
 
-jjstack 把一个人的判断固化成 slash 命令式的工作流。不是"提示词合集"，是**把判断标准写成每次都会读到的判据**。
+> 给我们的专注 App 加一个久坐提醒。
+
+**没装之前，agent 会这么做：**
+
+> 好的，我加一个定时器，每 45 分钟弹一次通知"该起来活动了"，带一个"稍后提醒"按钮。
+
+**装了之后：**
+
+> 先等一下，这个提醒有三个问题：
+>
+> 1. 45 分钟是**固定阈值**，不看用户状态 —— 有人那 45 分钟正在写代码
+> 2. **弹窗本身就是一次打断**，跟"专注 App"的前提冲突
+> 3. 如果不提醒，用户会损失什么？**答不上来**
+>
+> 我的建议：只在**连续静止超过阈值且当前不在通话**时，做一次环境化提示（屏幕边缘的光，或桌面设备一次极轻微的动作）；专注模式完全不输出，只在用户主动回看时显示"今天有 3 段长时间静止"；先记录一周，再给个体基线。
+>
+> 要按这个做，还是你有别的考虑？
+
+**区别不是"多了一个功能"，而是它先反问了三次。**
 
 ---
 
-## 七条原则
+## 装法（30 秒）
 
-| # | 原则 | 一句话 |
-|---|---|---|
-| 1 | 问题不对，后面全错 | 用「不是 A，而是 B」写清重构，写不出来就是没想清楚 |
-| 2 | 做到能上手为止 | 交付物要能被别人打开/安装/上手 |
-| 3 | 用测量代替猜测 | 说结论前先能回答：怎么测、样本多少、对照组是什么 |
-| 4 | 先记录，再打断 | 默认安静做完；有证据且不打断会造成损失时才打断 |
-| 5 | 把边界写进文档 | 每条对外陈述配一句"它能证明到哪一步" |
-| 6 | 屏幕之外 | 反馈先想放进环境，再想能不能少一次 |
-| 7 | 解耦状态与执行 | 先写状态帧协议，再写消费端 |
+```bash
+git clone https://github.com/wujiajunhahah/jjstack.git
+cd jjstack && ./setup
+python3 scripts/validate.py     # 14 项自检
+```
 
-完整版与出处见 [`ETHOS.md`](ETHOS.md)。
+装完在 `~/.agents/skills/` 下就有 6 个技能。**任何支持 skills 协议的 agent 都能用**（Claude Code / Cursor / Codex…）。
 
 ---
 
-## 五个技能
+## 六个技能
 
-| 技能 | 干什么 | 什么时候用 |
-|---|---|---|
-| `jjstack` | 路由器 | 不确定走哪条流程 |
-| `jj-problem` | 问题重构 | 想法没写成一句话问题陈述、范围太大、几个方向选一个 |
-| `jj-prototype` | 原型到实机 | 问题清楚了，要出能上手的东西 |
-| `jj-measure` | 测量与评测 | 定门槛、做评测、判断改动有没有用 |
-| `jj-honesty` | 口径审查 | 某个数字或说法能不能写进 README/官网/答辩 |
-| `jj-embodied` | 具身与冷静交互 | 设计可穿戴/硬件/Agent 的反馈方式 |
+| 技能 | 干什么 |
+|---|---|
+| `jjstack` | 路由器：按意图分派到下面五个 |
+| `jj-problem` | 问题重构：用「不是 A，而是 B」把命题里的预设剥出来 |
+| `jj-prototype` | 原型到实机：协议先行、真机优先、异常路径第一版就要有 |
+| `jj-measure` | 测量与评测：定门槛、做对照、测完必须砍掉点什么 |
+| `jj-honesty` | 口径审查：每个数字回源，无证据的删掉，主动写边界 |
+| `jj-embodied` | 具身与冷静交互：什么时候不该打断用户 |
 
 常见串法：
 
 ```
 从零做新东西   jj-problem → jj-prototype → jj-measure → jj-honesty
-上线前         jj-honesty（先查说法）→ jj-measure（补测量）
 设计感知系统   jj-problem → jj-embodied → jj-prototype → jj-measure
+上线前         jj-honesty（先查说法）→ jj-measure（补测量）
 ```
 
 ---
 
-## 安装
+## 另外两份可以直接用的东西
+
+**`DESIGN.md`** —— 可移植规格。复制进你朋友的项目根目录，在它的 `AGENTS.md` 里加一句：
+
+```markdown
+构建 UI 前先读 DESIGN.md。frontmatter 里的 token 是规范性的。
+```
+
+里面是机器可读的约束（动效 ≤300ms、介入阈值、字数上限）+ 立场与决定日志。**任何 agent 都能读，不要求 skills 协议。**
+
+**`references/refusal-list.md`** —— 八条"不做"：不做打断式通知 · 不做实时数字焦虑 · 不做通用阈值 · 不做不可中断的自动化 · 不做无证据的效果宣称 · 不做装饰性动效 · 不做"首个/领先"式表述 · 不做让用户误以为是人的 AI 表达。每条都带例外。
+
+---
+
+## 为什么每条规则都要写"反例"
+
+每个技能的判据表都是三段：**判据 / 为什么 / 边界**。
+
+- 只有判据 → 变成教条，agent 机械执行
+- 加上为什么 → 它能在新情境里推广
+- 加上边界 → 它知道什么时候**不该**用这条
+
+**写不出"为什么"的条目不是规则，是偏好。** `validate.py` 会拦——判据表缺第三列直接报错。
+
+---
+
+## 自检
 
 ```bash
-git clone https://github.com/<you>/jjstack.git
-cd jjstack
-./setup
+python3 scripts/validate.py
 ```
 
-`setup` 会把 6 个技能链接到 `~/.agents/skills/`（可用 `--target` 改），并初始化本地状态。
-
-卸载：
-```bash
-bash scripts/uninstall.sh
-```
-
----
-
-## 快速验证
-
-```bash
-python3 scripts/validate.py     # 11 项静态检查，免费、<2s、不联网
-```
-
----
-
-## 目录结构
-
-```
-jjstack/                      # 仓库根 = 路由器技能
-├── SKILL.tmpl  → SKILL.md    # 改 .tmpl，不要改 .md
-├── ETHOS.md                  # 七条原则（完整版）
-├── SECURITY.md               # 安全与隐私声明
-├── CONTRIBUTING.md
-├── ARCHITECTURE.md
-├── CHANGELOG.md
-├── VERSION
-├── setup                     # 安装器
-├── lib/preamble.md           # 共享启动块（只读，注入到每个技能）
-├── references/               # 判断标准
-│   ├── facts.example.md      # 事实库模板 —— 复制成 facts.md 填自己的
-│   ├── conventions.md        # 技术惯例
-│   ├── anti-patterns.md      # 反模式清单
-│   └── learnings.md          # 会话级自我改进
-├── scripts/                  # 生成器 + 验证器 + 初始化 + 卸载
-├── docs/                     # 验证体系、如何写新技能
-├── examples/                 # 一个走通的例子
-├── jj-problem/               # 六个子技能（各自的 SKILL.tmpl + agents/openai.yaml）
-├── jj-prototype/
-├── jj-measure/
-├── jj-honesty/
-├── jj-embodied/
-└── jj-apply/
-```
-
----
-
-## 两条纪律
-
-1. **`references/facts.md` 是唯一事实来源。** 技能里涉及"我做过什么"的内容只能引用它；文件里没有的不写。这样套件不会替你说没做过的话。仓库里给的是 `facts.example.md` 模板，你自己的那份不进版本库。
-2. **改 SKILL.md 的方式是改模板。** `SKILL.md` 由 `SKILL.tmpl` + `lib/preamble.md` 生成，`validate.py` 的 freshness 检查会拦下直接手改。
+14 项：生成物无漂移、判据表三段完整、DESIGN.md 规格完整、凭据与隐私扫描、本地身份词扫描、无网络无遥测、启动块只读、体积上限、shell 语法。
 
 ---
 
 ## 安全
 
-- 无网络、无遥测、无二进制；默认**不自动触发**（`agents/openai.yaml` 里 `allow_implicit_invocation: false`）
-- 启动块**只读**，不创建文件、不写盘；写操作只有两种：追加一行 learning，或写你指定的交付物
+无网络、无遥测、无二进制。默认**不自动触发**。启动块**只读**，不写盘。
+
+发布前想确认没带自己的身份信息，把自己的姓名/项目名写进 `.leak-terms.local`（不进仓库）再跑一次自检。
 
 详见 [`SECURITY.md`](SECURITY.md)。
 
 ---
 
-## 已知未覆盖
+## 两条纪律
 
-静态检查只能证明**文件干净、结构自洽**，不能证明**技能给出的建议是对的**。gstack 有 Tier 2（真实会话跑每个 skill）和 Tier 3（LLM 当裁判）；**本套件没有这两层**，所以状态是 `DONE_WITH_CONCERNS`。要补的话见 [`docs/validation.md`](docs/validation.md)。
+1. **改 `SKILL.md` 的方式是改模板** —— `SKILL.tmpl` + `lib/preamble.md` 才是源，freshness 检查会拦下手改。
+2. **判据表必须三段** —— 缺"为什么"或"边界"的条目不许进。
 
----
-
-MIT License · 见 [`LICENSE`](LICENSE)
+MIT License
