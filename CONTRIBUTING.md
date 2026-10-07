@@ -46,9 +46,9 @@ python3 scripts/validate.py     # 必须全绿
 
 ```bash
 # 例：验证「凭据扫描」真的会失败
-printf '\nAPI_KEY = "sk-'"$(printf 'a%.0s' {1..24})'"\n' >> jj-apply/SKILL.md
+printf '\nAPI_KEY = "sk-'"$(printf 'a%.0s' {1..24})'"\n' >> jj-measure/SKILL.md
 python3 scripts/validate.py --quiet ; echo "退出码=$? (期望 1)"
-git checkout jj-apply/SKILL.md   # 恢复
+git checkout jj-measure/SKILL.md   # 恢复
 ```
 
 不加对抗性测试的检查规则不会被合并。

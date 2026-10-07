@@ -1,15 +1,14 @@
 # jjstack
 
-[![CI](https://github.com/wujiajunhahah/jjstack/actions/workflows/ci.yml/badge.svg)](https://github.com/wujiajunhahah/jjstack/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.1-green.svg)](CHANGELOG.md)
 [![No network](https://img.shields.io/badge/network-none-lightgrey.svg)](SECURITY.md)
 
 把一个 builder 的工作方式编码成可复用的 agent skill 套件。
 
 结构参考 [gstack](https://github.com/garrytan/gstack)（Garry Tan 的 Claude Code 套件）：路由器 + 子技能 + ETHOS 注入 + 共享 references + 模板生成 + 静态验证。
 
-**七条原则，六个技能，纯 Markdown + 三个本地脚本。不联网、无遥测、默认不自动触发。**
+**七条原则，五个技能，纯 Markdown + 三个本地脚本。不联网、无遥测、默认不自动触发。**
 
 ---
 
@@ -37,7 +36,7 @@ jjstack 把一个人的判断固化成 slash 命令式的工作流。不是"提�
 
 ---
 
-## 六个技能
+## 五个技能
 
 | 技能 | 干什么 | 什么时候用 |
 |---|---|---|
@@ -45,15 +44,14 @@ jjstack 把一个人的判断固化成 slash 命令式的工作流。不是"提�
 | `jj-problem` | 问题重构 | 想法没写成一句话问题陈述、范围太大、几个方向选一个 |
 | `jj-prototype` | 原型到实机 | 问题清楚了，要出能上手的东西 |
 | `jj-measure` | 测量与评测 | 定门槛、做评测、判断改动有没有用 |
-| `jj-honesty` | 口径审查 | 某个数字或说法能不能写进简历/README/答辩 |
+| `jj-honesty` | 口径审查 | 某个数字或说法能不能写进 README/官网/答辩 |
 | `jj-embodied` | 具身与冷静交互 | 设计可穿戴/硬件/Agent 的反馈方式 |
-| `jj-apply` | 个人材料 | 简历、投递材料、求职文案 |
 
 常见串法：
 
 ```
 从零做新东西   jj-problem → jj-prototype → jj-measure → jj-honesty
-投递/上线前    jj-honesty（先查说法）→ jj-measure（补测量）
+上线前         jj-honesty（先查说法）→ jj-measure（补测量）
 设计感知系统   jj-problem → jj-embodied → jj-prototype → jj-measure
 ```
 

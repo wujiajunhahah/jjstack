@@ -97,6 +97,17 @@ WRITE_CMD_PATTERNS = [
 ]
 
 
+LOCAL_TERMS_FILE = os.path.join(SKILLS_DIR, '.leak-terms.local')
+
+
+def local_terms():
+    """本地身份词表（不进版本库）。发布前跑一次即可挡住"开盒"。"""
+    if not os.path.exists(LOCAL_TERMS_FILE):
+        return []
+    return [l.strip() for l in open(LOCAL_TERMS_FILE, encoding='utf-8').read().split('\n')
+            if l.strip() and not l.strip().startswith('#')]
+
+
 def files_under(path):
     out = []
     for base, _dirs, names in os.walk(path):
@@ -274,6 +285,23 @@ def c_size_ratchet():
     return out
 
 
+def c_leak_terms():
+    """身份词扫描：只在本地词表存在时生效。"""
+    terms = local_terms()
+    if not terms:
+        print('    （提示）未找到 .leak-terms.local —— 建议写入自己的姓名/项目名/域名后再跑，该文件不进仓库。')
+        return []
+    out = []
+    for f in files_under(SKILLS_DIR):
+        if os.path.basename(f) == '.leak-terms.local':
+            continue
+        t = open(f, encoding='utf-8', errors='ignore').read()
+        for term in terms:
+            if term in t:
+                out.append(f'{rel(f)}: 命中本地词表「{term}」（身份信息不该出现在可发布内容里）')
+    return out
+
+
 def c_security_doc():
     out = []
     f = os.path.join(ROOT, 'SECURITY.md')
@@ -321,6 +349,7 @@ CHECKS = [
     ('references 引用有效', c_refs),
     ('体积 ratchet', c_size_ratchet),
     ('SECURITY.md 声明齐全', c_security_doc),
+    ('本地身份词扫描', c_leak_terms),
     ('shell 脚本语法与变量引用', c_shell_syntax),
 ]
 

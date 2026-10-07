@@ -45,7 +45,7 @@ grep -rnE '\b(curl|wget|nc|ssh|urllib|requests)\b' scripts/ lib/ jjstack/
 **默认只读。** 只有两种写入，且都会先说明在写什么：
 
 1. `references/learnings.md` — 追加一行（仅在你要求记录时）
-2. 你指定的交付物路径 — 写简历 / 文档 / 代码
+2. 你指定的交付物路径 — 写文档 / 代码 / 报告
 
 启动块**不写盘**。需要初始化本地状态时显式运行：
 
@@ -83,6 +83,12 @@ policy:
 ```bash
 python3 scripts/validate.py     # 含凭据扫描与隐私扫描两项
 ```
+
+## 关于仓库地址
+
+本仓库的 URL 里包含账号名，这是 GitHub 的固有元数据，不是正文泄露。README 里的安装命令用 `<you>` 占位，正文不含作者身份。
+
+`scripts/validate.py` 的本地词表扫描对本仓库同样生效——如果你想连仓库地址里的账号名也不出现在正文，就别在文档里写完整 URL。
 
 ## 卸载
 

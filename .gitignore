@@ -1,3 +1,6 @@
+# 本地身份词表不进版本库
+.leak-terms.local
+
 # 个人事实库不进版本库
 references/facts.md
 references/learnings.md

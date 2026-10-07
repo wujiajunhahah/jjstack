@@ -4,7 +4,7 @@
 set -euo pipefail
 
 SKILLS="${HOME}/.agents/skills"
-TARGETS=("jjstack" "jj-problem" "jj-prototype" "jj-measure" "jj-honesty" "jj-embodied" "jj-apply")
+TARGETS=("jjstack" "jj-problem" "jj-prototype" "jj-measure" "jj-honesty" "jj-embodied")
 
 echo "将删除以下目录："
 FOUND=0
@@ -36,7 +36,7 @@ for t in "${TARGETS[@]}"; do
   p="${SKILLS}/${t}"
   # 二次校验：必须是 $SKILLS 的直接子目录，防止变量意外为空时误删
   case "$p" in
-    "$SKILLS"/jjstack|"$SKILLS"/jj-problem|"$SKILLS"/jj-prototype|"$SKILLS"/jj-measure|"$SKILLS"/jj-honesty|"$SKILLS"/jj-embodied|"$SKILLS"/jj-apply)
+    "$SKILLS"/jjstack|"$SKILLS"/jj-problem|"$SKILLS"/jj-prototype|"$SKILLS"/jj-measure|"$SKILLS"/jj-honesty|"$SKILLS"/jj-embodied)
       [ -d "$p" ] && rm -rf "$p" && echo "已删除 ${p}"
       ;;
     *)

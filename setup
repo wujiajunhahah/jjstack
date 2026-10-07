@@ -29,7 +29,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-SKILLS=("jjstack" "jj-problem" "jj-prototype" "jj-measure" "jj-honesty" "jj-embodied" "jj-apply")
+SKILLS=("jjstack" "jj-problem" "jj-prototype" "jj-measure" "jj-honesty" "jj-embodied")
 
 echo "仓库:   ${REPO}"
 echo "目标:   ${TARGET}"
