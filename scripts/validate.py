@@ -137,8 +137,15 @@ def c_frontmatter():
         mm = re.search(r'^name:\s*(\S+)\s*$', fm, re.M)
         if not mm:
             out.append(f'{rel(f)}: 缺 name')
-        elif mm.group(1) != d:
-            out.append(f'{rel(f)}: name={mm.group(1)} 与目录名 {d} 不一致')
+        else:
+            skill_name = mm.group(1)
+            if not re.match(r'^(jjstack|jj-[a-z]+)$', skill_name):
+                out.append(f'{rel(f)}: name={skill_name} 不是合法技能名（应为 jjstack 或 jj-<小写>）')
+            elif d in ('jjstack',) or d.startswith('jj-'):
+                # 目录名本身是技能名时才要求严格一致
+                if skill_name != d:
+                    out.append(f'{rel(f)}: name={skill_name} 与目录名 {d} 不一致')
+            # 目录名不是技能名（例：github 下载解压成 jjstack-main/ 或 jjstack-0.1.0/）→ 跳过一致性检查
         dm = re.search(r'^description:\s*(.+)$', fm, re.M)
         if not dm:
             out.append(f'{rel(f)}: 缺 description')
