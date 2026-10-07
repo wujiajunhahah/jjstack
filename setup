@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# jjstack 安装器：把技能链接到 agent 的 skills 目录。
+# 只创建符号链接，不复制、不覆盖已有内容（冲突时先问）。
+set -euo pipefail
+
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TARGET="${HOME}/.agents/skills"
+DRY=0
+FORCE=0
+
+usage() {
+  cat <<EOF
+用法: ./setup [选项]
+
+  --target DIR   安装到 DIR（默认: \$HOME/.agents/skills）
+  --dry-run      只显示会做什么，不改任何东西
+  --force        遇到已存在的同名目录时直接替换（默认先问）
+  -h, --help     显示本帮助
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --target) TARGET="$2"; shift 2 ;;
+    --dry-run) DRY=1; shift ;;
+    --force) FORCE=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "未知参数: $1" >&2; usage; exit 1 ;;
+  esac
+done
+
+SKILLS=("jjstack" "jj-problem" "jj-prototype" "jj-measure" "jj-honesty" "jj-embodied" "jj-apply")
+
+echo "仓库:   ${REPO}"
+echo "目标:   ${TARGET}"
+echo "技能:   ${SKILLS[*]}"
+echo
+
+# 预检
+for s in "${SKILLS[@]}"; do
+  case "$s" in
+    jjstack) src="${REPO}" ;;
+    *)       src="${REPO}/${s}" ;;
+  esac
+  if [ ! -d "$src" ]; then
+    echo "缺少源目录: ${src}" >&2
+    exit 1
+  fi
+done
+
+if [ "$DRY" -eq 1 ]; then
+  echo "[dry-run] 会执行："
+  for s in "${SKILLS[@]}"; do
+    case "$s" in jjstack) src="${REPO}" ;; *) src="${REPO}/${s}" ;; esac
+    echo "  ln -sfn ${src} ${TARGET}/${s}"
+  done
+  echo "  bash ${TARGET}/jjstack/scripts/init-state.sh"
+  exit 0
+fi
+
+mkdir -p "$TARGET"
+
+for s in "${SKILLS[@]}"; do
+  case "$s" in jjstack) src="${REPO}" ;; *) src="${REPO}/${s}" ;; esac
+  dest="${TARGET}/${s}"
+
+  if [ -e "$dest" ] && [ ! -L "$dest" ]; then
+    if [ "$FORCE" -eq 0 ]; then
+      printf '%s 已存在且不是符号链接。替换？(y/N) ' "$dest"
+      read -r ans
+      [ "$ans" = "y" ] || { echo "  跳过 ${s}"; continue; }
+    fi
+    rm -rf "$dest"
+  fi
+
+  ln -sfn "$src" "$dest"
+  echo "链接 ${dest} → ${src}"
+done
+
+echo
+if [ -f "${TARGET}/jjstack/references/facts.md" ]; then
+  echo "已存在 references/facts.md，保留不动。"
+else
+  cat > "${TARGET}/jjstack/references/facts.md" <<'EOF'
+# 事实库
+
+> 把 references/facts.example.md 复制成这个文件，按模板填入你自己的事实。
+> 此文件已被 .gitignore 排除，不会进版本库。
+
+（尚未填写。在填之前，技能不会引用任何"你做过什么"的陈述。）
+EOF
+  echo "已创建 references/facts.md（从模板开始的占位；请按 facts.example.md 填写）"
+fi
+
+bash "${TARGET}/jjstack/scripts/init-state.sh" || true
+
+echo
+echo "完成。验证一次："
+echo "  python3 ${TARGET}/jjstack/scripts/validate.py"

@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    name: Tier 1 静态验证
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 检查 SKILL.md 与模板是否漂移
+        run: python3 scripts/gen-skills.py --check
+
+      - name: 11 项静态验证
+        run: python3 scripts/validate.py
+
+      - name: 确认没有网络调用
+        run: |
+          if grep -rnE '\b(curl|wget|nc|ssh|urllib\.request|requests\.(get|post))\b' scripts/ lib/ *.tmpl 2>/dev/null; then
+            echo "::error::脚本或模板里出现了网络调用"
+            exit 1
+          fi
+          echo "无网络调用"
+
+      - name: 确认没有遥测
+        run: |
+          if grep -rniE 'telemetry|analytics|track\(|report\(|phone.?home' scripts/ lib/ *.tmpl 2>/dev/null; then
+            echo "::error::出现遥测相关代码"
+            exit 1
+          fi
+          echo "无遥测"

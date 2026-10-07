@@ -1,0 +1,26 @@
+# 个人事实库不进版本库
+references/facts.md
+references/learnings.md
+
+# 生成物可选提交（本仓库提交 SKILL.md 以便直接使用）
+# 如需忽略生成物，取消下一行注释并在 CI 里跑 gen-skills.py
+# jjstack/SKILL.md
+# jj-*/SKILL.md
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 本地草稿
+.context/
+*.local.md
