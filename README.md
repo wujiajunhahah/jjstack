@@ -1,5 +1,10 @@
 # jjstack
 
+[![CI](https://github.com/wujiajunhahah/jjstack/actions/workflows/ci.yml/badge.svg)](https://github.com/wujiajunhahah/jjstack/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.1.0-green.svg)](CHANGELOG.md)
+[![No network](https://img.shields.io/badge/network-none-lightgrey.svg)](SECURITY.md)
+
 把一个 builder 的工作方式编码成可复用的 agent skill 套件。
 
 结构参考 [gstack](https://github.com/garrytan/gstack)（Garry Tan 的 Claude Code 套件）：路由器 + 子技能 + ETHOS 注入 + 共享 references + 模板生成 + 静态验证。
