@@ -137,6 +137,4 @@ jjstack/                      # 仓库根 = 路由器技能
 
 ---
 
-## License
-
-MIT
+MIT License · 见 [`LICENSE`](LICENSE)
